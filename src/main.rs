@@ -3,7 +3,9 @@ use bevy_rapier2d::prelude::*;
 mod camera;
 pub use camera::*;
 
-struct Player;
+struct Player {
+    speed: f32
+}
 
 struct Jumper {
     jump_impulse: f32,
@@ -25,6 +27,7 @@ fn main() {
         .add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
         .add_startup_stage("floor_setup", SystemStage::single(spawn_floor.system()))
         .add_system(player_jumps.system())
+        .add_system(player_movement.system())
         .add_system(jump_reset.system())
         .add_plugins(DefaultPlugins)
         .run();
@@ -58,8 +61,8 @@ fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMateri
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete)
-        .insert(Player)
-        .insert(Jumper { jump_impulse: 10., is_jumping: false });
+        .insert(Player { speed: 3.5 })
+        .insert(Jumper { jump_impulse: 7., is_jumping: false });
 }
 
 fn player_jumps(
@@ -67,9 +70,23 @@ fn player_jumps(
     mut players: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Player>>
 ) {
     for (mut jumper, mut velocity) in players.iter_mut() {
-        if keyboard_input.pressed(KeyCode::Up) && !jumper.is_jumping {
+        if keyboard_input.just_pressed(KeyCode::Up) && !jumper.is_jumping {
             velocity.linvel = Vec2::new(0., jumper.jump_impulse).into();
             jumper.is_jumping = true
+        }
+    }
+}
+
+fn player_movement(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut players: Query<(&Player, &mut RigidBodyVelocity)>
+) {
+    for (player, mut velocity) in players.iter_mut() {
+        if keyboard_input.pressed(KeyCode::Left) {
+            velocity.linvel = Vec2::new(-player.speed, velocity.linvel.y).into();
+        }
+        if keyboard_input.pressed(KeyCode::Right) {
+            velocity.linvel = Vec2::new(player.speed, velocity.linvel.y).into();
         }
     }
 }
