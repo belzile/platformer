@@ -23,7 +23,6 @@ fn main() {
         })
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_startup_system(setup.system())
         .add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
         .add_startup_stage("floor_setup", SystemStage::single(spawn_floor.system()))
         .add_system(player_jumps.system())
@@ -31,10 +30,6 @@ fn main() {
         .add_system(jump_reset.system())
         .add_plugins(DefaultPlugins)
         .run();
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn_bundle(new_camera_2d());
 }
 
 fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
@@ -62,7 +57,10 @@ fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMateri
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete)
         .insert(Player { speed: 3.5 })
-        .insert(Jumper { jump_impulse: 7., is_jumping: false });
+        .insert(Jumper { jump_impulse: 7., is_jumping: false })
+        .with_children(|parent| {
+            parent.spawn_bundle(new_camera_2d());
+        });
 }
 
 fn player_jumps(
@@ -70,7 +68,7 @@ fn player_jumps(
     mut players: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Player>>
 ) {
     for (mut jumper, mut velocity) in players.iter_mut() {
-        if keyboard_input.just_pressed(KeyCode::Up) && !jumper.is_jumping {
+        if keyboard_input.pressed(KeyCode::Up) && !jumper.is_jumping {
             velocity.linvel = Vec2::new(0., jumper.jump_impulse).into();
             jumper.is_jumping = true
         }
