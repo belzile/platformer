@@ -30,7 +30,7 @@ fn main() {
 fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
     commands.spawn_bundle(new_camera_2d());
     commands.insert_resource(Materials {
-        player_material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
+        player_material: materials.add(Color::rgb(0.969, 0.769, 0.784).into()),
         floor_material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
     });
 }
