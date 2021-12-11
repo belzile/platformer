@@ -1,5 +1,5 @@
 use super::camera::new_camera_2d;
-use super::components::{Jumper, Player};
+use super::components::{Jumper, Materials, Player};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -14,7 +14,7 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-pub fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
     let rigid_body = RigidBodyBundle {
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
         activation: RigidBodyActivation::cannot_sleep(),
@@ -38,7 +38,7 @@ pub fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMa
     };
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
+            material: materials.player_material.clone(),
             sprite: Sprite::new(Vec2::new(1.0, 1.0)),
             ..Default::default()
         })

@@ -1,3 +1,10 @@
+use bevy::{prelude::Handle, sprite::ColorMaterial};
+
+pub struct Materials {
+    pub player_material: Handle<ColorMaterial>,
+    pub floor_material: Handle<ColorMaterial>,
+}
+
 pub struct Player {
     pub speed: f32,
 }

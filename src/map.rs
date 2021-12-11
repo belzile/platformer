@@ -1,7 +1,8 @@
+use super::components::Materials;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-pub fn spawn_floor(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+pub fn spawn_floor(mut commands: Commands, materials: Res<Materials>) {
     let width = 10.;
     let height = 1.;
     let rigid_body = RigidBodyBundle {
@@ -15,7 +16,7 @@ pub fn spawn_floor(mut commands: Commands, mut materials: ResMut<Assets<ColorMat
     };
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
+            material: materials.floor_material.clone(),
             sprite: Sprite::new(Vec2::new(width, height)),
             ..Default::default()
         })

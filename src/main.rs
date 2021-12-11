@@ -20,8 +20,17 @@ fn main() {
         })
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_startup_system(setup.system())
         .add_startup_stage("floor_setup", SystemStage::single(spawn_floor.system()))
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin)
         .run();
+}
+
+fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+    commands.spawn_bundle(new_camera_2d());
+    commands.insert_resource(Materials {
+        player_material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
+        floor_material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
+    });
 }
