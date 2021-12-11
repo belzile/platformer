@@ -18,12 +18,9 @@ fn main() {
         })
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
         .add_startup_stage("floor_setup", SystemStage::single(spawn_floor.system()))
-        .add_system(player_jumps.system())
-        .add_system(player_movement.system())
-        .add_system(jump_reset.system())
         .add_plugins(DefaultPlugins)
+        .add_plugin(PlayerPlugin)
         .run();
 }
 
@@ -48,19 +45,4 @@ fn spawn_floor(mut commands: Commands, mut materials: ResMut<Assets<ColorMateria
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete);
-}
-
-fn jump_reset(
-    mut query: Query<(Entity, &mut Jumper)>,
-    mut contact_events: EventReader<ContactEvent>,
-) {
-    for contact_event in contact_events.iter() {
-        for (entity, mut jumper) in query.iter_mut() {
-            if let ContactEvent::Started(h1, h2) = contact_event {
-                if h1.entity() == entity || h2.entity() == entity {
-                    jumper.is_jumping = false
-                }
-            }
-        }
-    }
 }

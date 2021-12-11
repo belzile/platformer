@@ -3,6 +3,18 @@ use bevy_rapier2d::prelude::*;
 use super::components::{Jumper, Player};
 use super::camera::new_camera_2d;
 
+pub struct PlayerPlugin;
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app
+        .add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
+        .add_system(player_jumps.system())
+        .add_system(player_movement.system())
+        .add_system(jump_reset.system());
+    }
+}
+
 pub fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
     let rigid_body = RigidBodyBundle {
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
@@ -57,6 +69,21 @@ pub fn player_movement(
         }
         if keyboard_input.pressed(KeyCode::Right) {
             velocity.linvel = Vec2::new(player.speed, velocity.linvel.y).into();
+        }
+    }
+}
+
+pub fn jump_reset(
+    mut query: Query<(Entity, &mut Jumper)>,
+    mut contact_events: EventReader<ContactEvent>,
+) {
+    for contact_event in contact_events.iter() {
+        for (entity, mut jumper) in query.iter_mut() {
+            if let ContactEvent::Started(h1, h2) = contact_event {
+                if h1.entity() == entity || h2.entity() == entity {
+                    jumper.is_jumping = false
+                }
+            }
         }
     }
 }
