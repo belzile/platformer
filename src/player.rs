@@ -1,17 +1,16 @@
+use super::camera::new_camera_2d;
+use super::components::{Jumper, Player};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use super::components::{Jumper, Player};
-use super::camera::new_camera_2d;
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app
-        .add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
-        .add_system(player_jumps.system())
-        .add_system(player_movement.system())
-        .add_system(jump_reset.system());
+        app.add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
+            .add_system(player_jumps.system())
+            .add_system(player_movement.system())
+            .add_system(jump_reset.system());
     }
 }
 
@@ -19,8 +18,14 @@ pub fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMa
     let rigid_body = RigidBodyBundle {
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
         activation: RigidBodyActivation::cannot_sleep(),
-        forces: RigidBodyForces { gravity_scale: 3., ..Default::default() },
-        ccd: RigidBodyCcd { ccd_enabled: true, ..Default::default() },
+        forces: RigidBodyForces {
+            gravity_scale: 3.,
+            ..Default::default()
+        },
+        ccd: RigidBodyCcd {
+            ccd_enabled: true,
+            ..Default::default()
+        },
         ..Default::default()
     };
     let collider = ColliderBundle {
@@ -41,7 +46,10 @@ pub fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMa
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete)
         .insert(Player { speed: 7. })
-        .insert(Jumper { jump_impulse: 14., is_jumping: false })
+        .insert(Jumper {
+            jump_impulse: 14.,
+            is_jumping: false,
+        })
         .with_children(|parent| {
             parent.spawn_bundle(new_camera_2d());
         });
@@ -49,7 +57,7 @@ pub fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMa
 
 pub fn player_jumps(
     keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Player>>
+    mut players: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Player>>,
 ) {
     for (mut jumper, mut velocity) in players.iter_mut() {
         if keyboard_input.pressed(KeyCode::Up) && !jumper.is_jumping {
@@ -61,7 +69,7 @@ pub fn player_jumps(
 
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&Player, &mut RigidBodyVelocity)>
+    mut players: Query<(&Player, &mut RigidBodyVelocity)>,
 ) {
     for (player, mut velocity) in players.iter_mut() {
         if keyboard_input.pressed(KeyCode::Left) {
