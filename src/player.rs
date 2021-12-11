@@ -23,10 +23,6 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
             gravity_scale: 3.,
             ..Default::default()
         },
-        ccd: RigidBodyCcd {
-            ccd_enabled: true,
-            ..Default::default()
-        },
         ..Default::default()
     };
     let collider = ColliderBundle {
