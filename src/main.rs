@@ -1,16 +1,11 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+mod components;
+pub use components::*;
 mod camera;
 pub use camera::*;
-
-struct Player {
-    speed: f32
-}
-
-struct Jumper {
-    jump_impulse: f32,
-    is_jumping: bool
-}
+mod player;
+pub use player::*;
 
 fn main() {
     App::build()
@@ -23,70 +18,10 @@ fn main() {
         })
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
         .add_startup_stage("floor_setup", SystemStage::single(spawn_floor.system()))
-        .add_system(player_jumps.system())
-        .add_system(player_movement.system())
-        .add_system(jump_reset.system())
         .add_plugins(DefaultPlugins)
+        .add_plugin(PlayerPlugin)
         .run();
-}
-
-fn spawn_player(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
-    let rigid_body = RigidBodyBundle {
-        mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
-        activation: RigidBodyActivation::cannot_sleep(),
-        ccd: RigidBodyCcd { ccd_enabled: true, ..Default::default() },
-        ..Default::default()
-    };
-    let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(0.5, 0.5),
-        flags: ColliderFlags {
-            active_events: ActiveEvents::CONTACT_EVENTS,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
-            sprite: Sprite::new(Vec2::new(1.0, 1.0)),
-            ..Default::default()
-        })
-        .insert_bundle(rigid_body)
-        .insert_bundle(collider)
-        .insert(RigidBodyPositionSync::Discrete)
-        .insert(Player { speed: 3.5 })
-        .insert(Jumper { jump_impulse: 7., is_jumping: false })
-        .with_children(|parent| {
-            parent.spawn_bundle(new_camera_2d());
-        });
-}
-
-fn player_jumps(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Player>>
-) {
-    for (mut jumper, mut velocity) in players.iter_mut() {
-        if keyboard_input.pressed(KeyCode::Up) && !jumper.is_jumping {
-            velocity.linvel = Vec2::new(0., jumper.jump_impulse).into();
-            jumper.is_jumping = true
-        }
-    }
-}
-
-fn player_movement(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&Player, &mut RigidBodyVelocity)>
-) {
-    for (player, mut velocity) in players.iter_mut() {
-        if keyboard_input.pressed(KeyCode::Left) {
-            velocity.linvel = Vec2::new(-player.speed, velocity.linvel.y).into();
-        }
-        if keyboard_input.pressed(KeyCode::Right) {
-            velocity.linvel = Vec2::new(player.speed, velocity.linvel.y).into();
-        }
-    }
 }
 
 fn spawn_floor(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
@@ -110,19 +45,4 @@ fn spawn_floor(mut commands: Commands, mut materials: ResMut<Assets<ColorMateria
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete);
-}
-
-fn jump_reset(
-    mut query: Query<(Entity, &mut Jumper)>,
-    mut contact_events: EventReader<ContactEvent>,
-) {
-    for contact_event in contact_events.iter() {
-        for (entity, mut jumper) in query.iter_mut() {
-            if let ContactEvent::Started(h1, h2) = contact_event {
-                if h1.entity() == entity || h2.entity() == entity {
-                    jumper.is_jumping = false
-                }
-            }
-        }
-    }
 }
