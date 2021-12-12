@@ -16,20 +16,17 @@ impl Plugin for PlayerPlugin {
 
 pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
     let rigid_body = RigidBodyBundle {
+        position: Vec2::new(0., 2.).into(),
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
         activation: RigidBodyActivation::cannot_sleep(),
         forces: RigidBodyForces {
             gravity_scale: 3.,
             ..Default::default()
         },
-        ccd: RigidBodyCcd {
-            ccd_enabled: true,
-            ..Default::default()
-        },
         ..Default::default()
     };
     let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(0.5, 0.5),
+        shape: ColliderShape::round_cuboid(0.35, 0.35, 0.1),
         flags: ColliderFlags {
             active_events: ActiveEvents::CONTACT_EVENTS,
             ..Default::default()
@@ -39,7 +36,7 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.player_material.clone(),
-            sprite: Sprite::new(Vec2::new(1.0, 1.0)),
+            sprite: Sprite::new(Vec2::new(0.9, 0.9)),
             ..Default::default()
         })
         .insert_bundle(rigid_body)

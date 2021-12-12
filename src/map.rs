@@ -4,23 +4,37 @@ use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
 pub fn spawn_floor(mut commands: Commands, materials: Res<Materials>) {
-    let mut height = 1;
-    for x in 0..150 {
-        add_tile(&mut commands, &materials, x as f32, height);
-        height = get_next_height(height)
-    }
+    let world = create_world(150);
+    add_sprites(&mut commands, materials, &world);
+    add_colliders(&world, &mut commands);
 }
 
-fn get_next_height(current_height: u8) -> u8 {
-    let next_height = current_height as i8 + get_random_height_delta();
+fn add_sprites(commands: &mut Commands, materials: Res<Materials>, world: &Vec<usize>) {
+    world.iter().enumerate().for_each(|(x, height)| {
+        add_tile(commands, &materials, x as f32, *height);
+    });
+}
+
+fn create_world(width: usize) -> Vec<usize> {
+    let mut heights: Vec<usize> = Vec::with_capacity(width);
+    let mut height = 1;
+    (0..width).for_each(|_| {
+        heights.push(height);
+        height = get_next_height(height)
+    });
+    heights
+}
+
+fn get_next_height(current_height: usize) -> usize {
+    let next_height = current_height as isize + get_random_height_delta();
     return if next_height > 0 {
-        next_height as u8
+        next_height as usize
     } else {
         1
     };
 }
 
-fn get_random_height_delta() -> i8 {
+fn get_random_height_delta() -> isize {
     let mut rng = thread_rng();
     let random_number: u32 = rng.gen_range(0..100);
     let delta = match random_number {
@@ -32,24 +46,52 @@ fn get_random_height_delta() -> i8 {
     delta
 }
 
-fn add_tile(commands: &mut Commands, materials: &Res<Materials>, x: f32, height: u8) {
-    let half_height = height as f32 / 2.;
-    let rigid_body = RigidBodyBundle {
-        position: Vec2::new(x, -2. + half_height).into(),
-        body_type: RigidBodyType::Static,
-        ..Default::default()
-    };
-    let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(0.5, half_height),
-        ..Default::default()
-    };
+fn add_tile(commands: &mut Commands, materials: &Res<Materials>, x: f32, height: usize) {
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.floor_material.clone(),
             sprite: Sprite::new(Vec2::new(1., height as f32)),
+            transform: Transform::from_translation(Vec3::new(x, height as f32 / 2., 0.)),
             ..Default::default()
-        })
-        .insert_bundle(rigid_body)
+        });
+}
+
+fn add_colliders(world: &Vec<usize>, commands: &mut Commands) {
+    let max = match world.iter().max() {
+        Some(m) => m,
+        _ => panic!("add_colliders: World is empty")
+    };
+    (1..=*max).for_each(|floor_height| {
+        let mut start: Option<usize> = None;
+        world.iter().enumerate().for_each(|(index, height_at_index)| {
+            if  *height_at_index >= floor_height && start.is_none() {
+                start = Some(index);
+            } else if *height_at_index < floor_height && start.is_some() {
+                add_collider(commands, floor_height, *start.get_or_insert(0), index);
+                start = None
+            }
+        });
+
+        if start.is_some() {
+            add_collider(commands, floor_height, *start.get_or_insert(0), world.len());
+        }
+    })
+}
+
+fn add_collider(commands: &mut Commands, height: usize, from: usize, to: usize) {
+    let width = to - from;
+    let half_width = width as f32 / 2.;
+    let rigid_body = RigidBodyBundle {
+        position: Vec2::new(from as f32 + half_width - 0.5, height as f32 - 0.5).into(),
+        body_type: RigidBodyType::Static,
+        ..Default::default()
+    };
+    let collider = ColliderBundle {
+        shape: ColliderShape::cuboid(half_width, 0.5),
+        ..Default::default()
+    };
+    commands
+        .spawn_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete);
 }
