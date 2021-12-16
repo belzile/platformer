@@ -1,5 +1,5 @@
 use super::components::Materials;
-use bevy::{prelude::*, ecs::system::EntityCommands};
+use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
@@ -63,7 +63,11 @@ fn add_tile(commands: &mut EntityCommands, materials: &Res<Materials>, x: f32, h
         parent.spawn_bundle(SpriteBundle {
             material: materials.floor_material.clone(),
             sprite: Sprite::new(Vec2::new(1., height as f32)),
-            global_transform: GlobalTransform::from_translation(Vec3::new(x, height as f32 / 2., 0.)),
+            global_transform: GlobalTransform::from_translation(Vec3::new(
+                x,
+                height as f32 / 2.,
+                0.,
+            )),
             ..Default::default()
         });
     });
@@ -72,18 +76,21 @@ fn add_tile(commands: &mut EntityCommands, materials: &Res<Materials>, x: f32, h
 fn add_colliders(world: &Vec<usize>, commands: &mut EntityCommands) {
     let max = match world.iter().max() {
         Some(m) => m,
-        _ => panic!("add_colliders: World is empty")
+        _ => panic!("add_colliders: World is empty"),
     };
     (1..=*max).for_each(|floor_height| {
         let mut start: Option<usize> = None;
-        world.iter().enumerate().for_each(|(index, height_at_index)| {
-            if  *height_at_index >= floor_height && start.is_none() {
-                start = Some(index);
-            } else if *height_at_index < floor_height && start.is_some() {
-                add_collider(commands, floor_height, *start.get_or_insert(0), index);
-                start = None
-            }
-        });
+        world
+            .iter()
+            .enumerate()
+            .for_each(|(index, height_at_index)| {
+                if *height_at_index >= floor_height && start.is_none() {
+                    start = Some(index);
+                } else if *height_at_index < floor_height && start.is_some() {
+                    add_collider(commands, floor_height, *start.get_or_insert(0), index);
+                    start = None
+                }
+            });
 
         if start.is_some() {
             add_collider(commands, floor_height, *start.get_or_insert(0), world.len());
