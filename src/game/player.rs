@@ -1,3 +1,4 @@
+use super::super::AppState;
 use super::camera::new_camera_2d;
 use super::components::{Jumper, Materials, Player};
 use bevy::prelude::*;
@@ -5,13 +6,29 @@ use bevy_rapier2d::prelude::*;
 
 pub struct PlayerPlugin;
 
+struct PlayerData {
+    player_entity: Entity,
+}
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_stage("player_setup", SystemStage::single(spawn_player.system()))
-            .add_system(player_jumps.system())
-            .add_system(player_movement.system())
-            .add_system(jump_reset.system());
+        app.add_system_set(
+            SystemSet::on_enter(AppState::InGame).with_system(spawn_player.system()),
+        )
+        .add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(player_jumps.system())
+                .with_system(player_movement.system())
+                .with_system(jump_reset.system()),
+        )
+        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_player.system()));
     }
+}
+
+fn cleanup_player(mut commands: Commands, player_data: Res<PlayerData>) {
+    commands
+        .entity(player_data.player_entity)
+        .despawn_recursive();
 }
 
 pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
@@ -33,7 +50,7 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         },
         ..Default::default()
     };
-    commands
+    let player_entity = commands
         .spawn_bundle(SpriteBundle {
             material: materials.player_material.clone(),
             sprite: Sprite::new(Vec2::new(0.9, 0.9)),
@@ -49,7 +66,9 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         })
         .with_children(|parent| {
             parent.spawn_bundle(new_camera_2d());
-        });
+        })
+        .id();
+    commands.insert_resource(PlayerData { player_entity });
 }
 
 pub fn player_jumps(
@@ -84,11 +103,25 @@ pub fn jump_reset(
 ) {
     for contact_event in contact_events.iter() {
         for (entity, mut jumper) in query.iter_mut() {
-            if let ContactEvent::Started(h1, h2) = contact_event {
-                if h1.entity() == entity || h2.entity() == entity {
-                    jumper.is_jumping = false
-                }
-            }
+            set_jumping_false_if_touching_floor(entity, &mut jumper, contact_event);
+
+            set_jumping_true_if_in_the_air(entity, &mut jumper, contact_event)
+        }
+    }
+}
+
+fn set_jumping_false_if_touching_floor(entity: Entity, jumper: &mut Jumper, event: &ContactEvent) {
+    if let ContactEvent::Started(h1, h2) = event {
+        if h1.entity() == entity || h2.entity() == entity {
+            jumper.is_jumping = false
+        }
+    }
+}
+
+fn set_jumping_true_if_in_the_air(entity: Entity, jumper: &mut Jumper, event: &ContactEvent) {
+    if let ContactEvent::Stopped(h1, h2) = event {
+        if h1.entity() == entity || h2.entity() == entity {
+            jumper.is_jumping = true
         }
     }
 }
