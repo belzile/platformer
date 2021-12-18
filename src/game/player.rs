@@ -104,8 +104,6 @@ pub fn jump_reset(
     for contact_event in contact_events.iter() {
         for (entity, mut jumper) in query.iter_mut() {
             set_jumping_false_if_touching_floor(entity, &mut jumper, contact_event);
-
-            set_jumping_true_if_in_the_air(entity, &mut jumper, contact_event)
         }
     }
 }
@@ -114,14 +112,6 @@ fn set_jumping_false_if_touching_floor(entity: Entity, jumper: &mut Jumper, even
     if let ContactEvent::Started(h1, h2) = event {
         if h1.entity() == entity || h2.entity() == entity {
             jumper.is_jumping = false
-        }
-    }
-}
-
-fn set_jumping_true_if_in_the_air(entity: Entity, jumper: &mut Jumper, event: &ContactEvent) {
-    if let ContactEvent::Stopped(h1, h2) = event {
-        if h1.entity() == entity || h2.entity() == entity {
-            jumper.is_jumping = true
         }
     }
 }
