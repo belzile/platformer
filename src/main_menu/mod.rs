@@ -82,7 +82,7 @@ impl Plugin for MainMenuPlugin {
 }
 
 fn root(materials: &Res<MenuMaterials>) -> NodeBundle {
-    return NodeBundle {
+    NodeBundle {
         style: Style {
             size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
             justify_content: JustifyContent::Center,
@@ -91,11 +91,11 @@ fn root(materials: &Res<MenuMaterials>) -> NodeBundle {
         },
         material: materials.root.clone(),
         ..Default::default()
-    };
+    }
 }
 
 fn border(materials: &Res<MenuMaterials>) -> NodeBundle {
-    return NodeBundle {
+    NodeBundle {
         style: Style {
             size: Size::new(Val::Px(400.0), Val::Auto),
             border: Rect::all(Val::Px(8.0)),
@@ -103,11 +103,11 @@ fn border(materials: &Res<MenuMaterials>) -> NodeBundle {
         },
         material: materials.border.clone(),
         ..Default::default()
-    };
+    }
 }
 
 fn menu_background(materials: &Res<MenuMaterials>) -> NodeBundle {
-    return NodeBundle {
+    NodeBundle {
         style: Style {
             size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
             align_items: AlignItems::Center,
@@ -118,7 +118,7 @@ fn menu_background(materials: &Res<MenuMaterials>) -> NodeBundle {
         },
         material: materials.menu.clone(),
         ..Default::default()
-    };
+    }
 }
 
 fn button(materials: &Res<MenuMaterials>) -> ButtonBundle {
