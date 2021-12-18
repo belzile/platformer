@@ -19,7 +19,8 @@ impl Plugin for PlayerPlugin {
             SystemSet::on_update(AppState::InGame)
                 .with_system(player_jumps.system())
                 .with_system(player_movement.system())
-                .with_system(jump_reset.system()),
+                .with_system(jump_reset.system())
+                .with_system(back_to_main_menu_controls.system()),
         )
         .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_player.system()));
     }
@@ -104,8 +105,6 @@ pub fn jump_reset(
     for contact_event in contact_events.iter() {
         for (entity, mut jumper) in query.iter_mut() {
             set_jumping_false_if_touching_floor(entity, &mut jumper, contact_event);
-
-            set_jumping_true_if_in_the_air(entity, &mut jumper, contact_event)
         }
     }
 }
@@ -118,10 +117,11 @@ fn set_jumping_false_if_touching_floor(entity: Entity, jumper: &mut Jumper, even
     }
 }
 
-fn set_jumping_true_if_in_the_air(entity: Entity, jumper: &mut Jumper, event: &ContactEvent) {
-    if let ContactEvent::Stopped(h1, h2) = event {
-        if h1.entity() == entity || h2.entity() == entity {
-            jumper.is_jumping = true
+fn back_to_main_menu_controls(mut keys: ResMut<Input<KeyCode>>, mut app_state: ResMut<State<AppState>>) {
+    if *app_state.current() == AppState::InGame {
+        if keys.just_pressed(KeyCode::Escape) {
+            app_state.set(AppState::MainMenu).unwrap();
+            keys.reset(KeyCode::Escape);
         }
     }
 }
