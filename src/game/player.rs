@@ -144,7 +144,7 @@ fn death_by_height(
     players: Query<(Entity, &RigidBodyPosition), With<Player>>,
 ) {
     for (entity, position) in players.iter() {
-        if position.position.translation.y < -5. {
+        if position.position.translation.y < -1. {
             commands.entity(entity).despawn_recursive();
         }
     }
