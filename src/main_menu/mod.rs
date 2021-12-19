@@ -1,5 +1,5 @@
 use super::AppState;
-use bevy::{prelude::*, app::AppExit};
+use bevy::{app::AppExit, prelude::*};
 
 pub struct MainMenuPlugin;
 
@@ -43,7 +43,7 @@ fn button_system(
     mut buttons: Query<
         (&Interaction, &mut Handle<ColorMaterial>),
         (Changed<Interaction>, With<Button>),
-    >
+    >,
 ) {
     for (interaction, mut material) in buttons.iter_mut() {
         match *interaction {
@@ -57,7 +57,7 @@ fn button_system(
 fn button_press_system(
     buttons: Query<(&Interaction, &MenuButton), (Changed<Interaction>, With<Button>)>,
     mut state: ResMut<State<AppState>>,
-    mut exit: EventWriter<AppExit>
+    mut exit: EventWriter<AppExit>,
 ) {
     for (interaction, button) in buttons.iter() {
         if *interaction == Interaction::Clicked {
@@ -134,7 +134,11 @@ fn button(materials: &Res<MenuMaterials>) -> ButtonBundle {
     }
 }
 
-fn button_text(asset_server: &Res<AssetServer>, materials: &Res<MenuMaterials>, label: &str) -> TextBundle {
+fn button_text(
+    asset_server: &Res<AssetServer>,
+    materials: &Res<MenuMaterials>,
+    label: &str,
+) -> TextBundle {
     return TextBundle {
         style: Style {
             margin: Rect::all(Val::Px(10.0)),
@@ -153,11 +157,7 @@ fn button_text(asset_server: &Res<AssetServer>, materials: &Res<MenuMaterials>, 
     };
 }
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    materials: Res<MenuMaterials>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<MenuMaterials>) {
     let camera_entity = commands.spawn_bundle(UiCameraBundle::default()).id();
 
     let ui_root = commands
@@ -171,14 +171,24 @@ fn setup(
                     parent
                         .spawn_bundle(menu_background(&materials))
                         .with_children(|parent| {
-                            parent.spawn_bundle(button(&materials))
+                            parent
+                                .spawn_bundle(button(&materials))
                                 .with_children(|parent| {
-                                    parent.spawn_bundle(button_text(&asset_server, &materials, "New Game"));
+                                    parent.spawn_bundle(button_text(
+                                        &asset_server,
+                                        &materials,
+                                        "New Game",
+                                    ));
                                 })
                                 .insert(MenuButton::Play);
-                            parent.spawn_bundle(button(&materials))
+                            parent
+                                .spawn_bundle(button(&materials))
                                 .with_children(|parent| {
-                                    parent.spawn_bundle(button_text(&asset_server, &materials, "Quit"));
+                                    parent.spawn_bundle(button_text(
+                                        &asset_server,
+                                        &materials,
+                                        "Quit",
+                                    ));
                                 })
                                 .insert(MenuButton::Quit);
                         });
