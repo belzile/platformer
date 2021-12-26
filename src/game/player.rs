@@ -77,7 +77,7 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         .insert(RigidBodyPositionSync::Discrete)
         .insert(Player {
             speed: 7.,
-            looking_direction: GameDirection::Right,
+            facing_direction: GameDirection::Right,
         })
         .insert(Jumper {
             jump_impulse: 14.,
@@ -110,11 +110,11 @@ pub fn player_controller(
     for (mut player, mut velocity) in players.iter_mut() {
         if keyboard_input.pressed(KeyCode::Left) {
             velocity.linvel = Vec2::new(-player.speed, velocity.linvel.y).into();
-            player.looking_direction = GameDirection::Left
+            player.facing_direction = GameDirection::Left
         }
         if keyboard_input.pressed(KeyCode::Right) {
             velocity.linvel = Vec2::new(player.speed, velocity.linvel.y).into();
-            player.looking_direction = GameDirection::Right
+            player.facing_direction = GameDirection::Right
         }
     }
 }
@@ -130,7 +130,7 @@ pub fn fire_controller(
             let options = BulletOptions {
                 x: position.position.translation.x,
                 y: position.position.translation.y,
-                direction: player.looking_direction,
+                direction: player.facing_direction,
             };
             insert_bullet_at(&mut commands, &materials, options)
         }
