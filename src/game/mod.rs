@@ -8,6 +8,8 @@ mod map;
 pub use map::*;
 mod monsters;
 pub use monsters::*;
+mod bullets;
+pub use bullets::*;
 
 use super::AppState;
 use bevy::prelude::*;
