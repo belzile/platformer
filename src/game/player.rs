@@ -11,11 +11,6 @@ use bevy_rapier2d::prelude::*;
 
 pub struct PlayerPlugin;
 
-struct PlayerData {
-    player_entity: Entity,
-    camera_entity: Entity,
-}
-
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(
@@ -32,19 +27,8 @@ impl Plugin for PlayerPlugin {
                 .with_system(fire_controller.system())
                 .with_system(kill_on_contact.system())
                 .with_system(destroy_bullet_on_contact.system()),
-        )
-        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_player.system()));
+        );
     }
-}
-
-fn cleanup_player(mut commands: Commands, player_data: Res<PlayerData>) {
-    commands
-        .entity(player_data.player_entity)
-        .despawn_recursive();
-
-    commands
-        .entity(player_data.camera_entity)
-        .despawn_recursive();
 }
 
 pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
@@ -66,7 +50,7 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         },
         ..Default::default()
     };
-    let player_entity = commands
+    commands
         .spawn_bundle(SpriteBundle {
             material: materials.player_material.clone(),
             sprite: Sprite::new(Vec2::new(0.9, 0.9)),
@@ -82,13 +66,8 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         .insert(Jumper {
             jump_impulse: 14.,
             is_jumping: false,
-        })
-        .id();
-    let camera_entity = commands.spawn_bundle(new_camera_2d()).id();
-    commands.insert_resource(PlayerData {
-        player_entity,
-        camera_entity,
-    });
+        });
+    commands.spawn_bundle(new_camera_2d());
 }
 
 pub fn player_jumps(

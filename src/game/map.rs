@@ -1,35 +1,17 @@
-use super::{components::Materials, insert_monster_at, Enemy};
-use bevy::{ecs::system::EntityCommands, prelude::*};
+use super::{components::Materials, insert_monster_at};
+use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
-pub struct MapData {
-    map_entity: Entity,
-}
-
 pub fn spawn_floor(mut commands: Commands, materials: Res<Materials>) {
-    let mut map_parent = commands.spawn();
     let world = create_world(150);
-    add_sprites(&mut map_parent, &materials, &world);
-    add_colliders(&world, &mut map_parent);
-    let map_entity = map_parent.id();
-    commands.insert_resource(MapData { map_entity });
+    add_sprites(&mut commands, &materials, &world);
+    add_colliders(&world, &mut commands);
 
     add_enemies(&mut commands, &world, &materials);
 }
 
-pub fn cleanup_map(
-    mut commands: Commands,
-    map_data: Res<MapData>,
-    monsters: Query<Entity, With<Enemy>>,
-) {
-    commands.entity(map_data.map_entity).despawn_recursive();
-    for monster in monsters.iter() {
-        commands.entity(monster).despawn_recursive();
-    }
-}
-
-fn add_sprites(commands: &mut EntityCommands, materials: &Res<Materials>, world: &Vec<usize>) {
+fn add_sprites(commands: &mut Commands, materials: &Res<Materials>, world: &Vec<usize>) {
     world.iter().enumerate().for_each(|(x, height)| {
         add_tile(commands, materials, x as f32, *height);
     });
@@ -86,22 +68,16 @@ fn get_random_height_delta() -> isize {
     delta
 }
 
-fn add_tile(commands: &mut EntityCommands, materials: &Res<Materials>, x: f32, height: usize) {
-    commands.with_children(|parent| {
-        parent.spawn_bundle(SpriteBundle {
-            material: materials.floor_material.clone(),
-            sprite: Sprite::new(Vec2::new(1., height as f32)),
-            global_transform: GlobalTransform::from_translation(Vec3::new(
-                x,
-                height as f32 / 2. + 0.5,
-                0.,
-            )),
-            ..Default::default()
-        });
+fn add_tile(commands: &mut Commands, materials: &Res<Materials>, x: f32, height: usize) {
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.floor_material.clone(),
+        sprite: Sprite::new(Vec2::new(1., height as f32)),
+        transform: Transform::from_translation(Vec3::new(x, height as f32 / 2. + 0.5, 0.)),
+        ..Default::default()
     });
 }
 
-fn add_colliders(world: &Vec<usize>, commands: &mut EntityCommands) {
+fn add_colliders(world: &Vec<usize>, commands: &mut Commands) {
     let max = match world.iter().max() {
         Some(m) => m,
         _ => panic!("add_colliders: World is empty"),
@@ -126,7 +102,7 @@ fn add_colliders(world: &Vec<usize>, commands: &mut EntityCommands) {
     })
 }
 
-fn add_collider(commands: &mut EntityCommands, height: usize, from: usize, to: usize) {
+fn add_collider(commands: &mut Commands, height: usize, from: usize, to: usize) {
     let width = to - from;
     let half_width = width as f32 / 2.;
     let rigid_body = RigidBodyBundle {
@@ -138,10 +114,8 @@ fn add_collider(commands: &mut EntityCommands, height: usize, from: usize, to: u
         shape: ColliderShape::cuboid(half_width, 0.5),
         ..Default::default()
     };
-    commands.with_children(|parent| {
-        parent
-            .spawn_bundle(rigid_body)
-            .insert_bundle(collider)
-            .insert(RigidBodyPositionSync::Discrete);
-    });
+    commands
+        .spawn_bundle(rigid_body)
+        .insert_bundle(collider)
+        .insert(RigidBodyPositionSync::Discrete);
 }

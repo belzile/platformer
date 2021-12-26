@@ -3,11 +3,6 @@ use bevy::{app::AppExit, prelude::*};
 
 pub struct MainMenuPlugin;
 
-struct MainMenuData {
-    camera_entity: Entity,
-    ui_root: Entity,
-}
-
 struct MenuMaterials {
     root: Handle<ColorMaterial>,
     border: Handle<ColorMaterial>,
@@ -76,7 +71,11 @@ impl Plugin for MainMenuPlugin {
         app.init_resource::<MenuMaterials>()
             .add_system(button_system.system())
             .add_system(button_press_system.system())
-            .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup.system()))
+            .add_system_set(
+                SystemSet::on_enter(AppState::MainMenu)
+                    .with_system(cleanup.system())
+                    .with_system(setup.system()),
+            )
             .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(cleanup.system()));
     }
 }
@@ -158,9 +157,9 @@ fn button_text(
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<MenuMaterials>) {
-    let camera_entity = commands.spawn_bundle(UiCameraBundle::default()).id();
+    commands.spawn_bundle(UiCameraBundle::default()).id();
 
-    let ui_root = commands
+    commands
         .spawn_bundle(root(&materials))
         .with_children(|parent| {
             // left vertical fill (border)
@@ -193,16 +192,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<
                                 .insert(MenuButton::Quit);
                         });
                 });
-        })
-        .id();
-
-    commands.insert_resource(MainMenuData {
-        camera_entity,
-        ui_root,
-    });
+        });
 }
 
-fn cleanup(mut commands: Commands, menu_data: Res<MainMenuData>) {
-    commands.entity(menu_data.ui_root).despawn_recursive();
-    commands.entity(menu_data.camera_entity).despawn_recursive();
+fn cleanup(mut commands: Commands, query: Query<Entity>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }
