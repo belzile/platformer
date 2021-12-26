@@ -1,4 +1,4 @@
-use super::{components::Materials, Enemy, insert_monster_at};
+use super::{components::Materials, insert_monster_at, Enemy};
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;

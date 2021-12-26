@@ -1,7 +1,10 @@
 use super::super::AppState;
-use super::{Enemy, insert_bullet_at, BulletOptions, GameDirection, destroy_bullet_on_contact, kill_on_contact};
 use super::camera::new_camera_2d;
 use super::components::{Jumper, Materials, Player};
+use super::{
+    destroy_bullet_on_contact, insert_bullet_at, kill_on_contact, BulletOptions, Enemy,
+    GameDirection,
+};
 use bevy::prelude::*;
 use bevy::render::camera::Camera;
 use bevy_rapier2d::prelude::*;
@@ -28,7 +31,7 @@ impl Plugin for PlayerPlugin {
                 .with_system(death_by_enemy.system())
                 .with_system(fire_controller.system())
                 .with_system(kill_on_contact.system())
-                .with_system(destroy_bullet_on_contact.system())
+                .with_system(destroy_bullet_on_contact.system()),
         )
         .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_player.system()));
     }
@@ -72,7 +75,10 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete)
-        .insert(Player { speed: 7., looking_direction: GameDirection::Right })
+        .insert(Player {
+            speed: 7.,
+            looking_direction: GameDirection::Right,
+        })
         .insert(Jumper {
             jump_impulse: 14.,
             is_jumping: false,
@@ -117,11 +123,15 @@ pub fn fire_controller(
     keyboard_input: Res<Input<KeyCode>>,
     mut commands: Commands,
     materials: Res<Materials>,
-    players: Query<(&Player, &RigidBodyPosition), With<Player>>
+    players: Query<(&Player, &RigidBodyPosition), With<Player>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (player, position) in players.iter() {
-            let options = BulletOptions { x: position.position.translation.x, y: position.position.translation.y, direction: player.looking_direction };
+            let options = BulletOptions {
+                x: position.position.translation.x,
+                y: position.position.translation.y,
+                direction: player.looking_direction,
+            };
             insert_bullet_at(&mut commands, &materials, options)
         }
     }
@@ -179,7 +189,9 @@ pub fn death_by_enemy(
         if let ContactEvent::Started(h1, h2) = contact_event {
             for player in players.iter() {
                 for enemy in enemies.iter() {
-                    if (h1.entity() == player && h2.entity() == enemy) || (h1.entity() == enemy && h2.entity() == player) {
+                    if (h1.entity() == player && h2.entity() == enemy)
+                        || (h1.entity() == enemy && h2.entity() == player)
+                    {
                         commands.entity(player).despawn_recursive();
                     }
                 }

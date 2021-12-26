@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use super::{Materials, Enemy, Monster};
+use super::{Enemy, Materials, Monster};
 
 pub fn insert_monster_at(commands: &mut Commands, x: usize, y: usize, materials: &Res<Materials>) {
     let rigid_body = RigidBodyBundle {
