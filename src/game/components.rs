@@ -15,7 +15,7 @@ pub enum GameDirection {
 
 pub struct Player {
     pub speed: f32,
-    pub looking_direction: GameDirection,
+    pub facing_direction: GameDirection,
 }
 
 pub struct Enemy;
