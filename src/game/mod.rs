@@ -20,7 +20,6 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(spawn_floor.system()))
-            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_map.system()))
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .with_system(back_to_main_menu_controls.system()),
