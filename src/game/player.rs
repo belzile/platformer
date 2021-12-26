@@ -1,7 +1,10 @@
 use super::super::AppState;
-use super::Enemy;
 use super::camera::new_camera_2d;
 use super::components::{Jumper, Materials, Player};
+use super::{
+    destroy_bullet_on_contact, insert_bullet_at, kill_on_contact, BulletOptions, Enemy,
+    GameDirection,
+};
 use bevy::prelude::*;
 use bevy::render::camera::Camera;
 use bevy_rapier2d::prelude::*;
@@ -22,10 +25,13 @@ impl Plugin for PlayerPlugin {
             SystemSet::on_update(AppState::InGame)
                 .with_system(camera_follow_player.system())
                 .with_system(player_jumps.system())
-                .with_system(player_movement.system())
+                .with_system(player_controller.system())
                 .with_system(jump_reset.system())
                 .with_system(death_by_height.system())
-                .with_system(death_by_enemy.system()),
+                .with_system(death_by_enemy.system())
+                .with_system(fire_controller.system())
+                .with_system(kill_on_contact.system())
+                .with_system(destroy_bullet_on_contact.system()),
         )
         .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup_player.system()));
     }
@@ -69,7 +75,10 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
         .insert_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete)
-        .insert(Player { speed: 7. })
+        .insert(Player {
+            speed: 7.,
+            facing_direction: GameDirection::Right,
+        })
         .insert(Jumper {
             jump_impulse: 14.,
             is_jumping: false,
@@ -94,16 +103,36 @@ pub fn player_jumps(
     }
 }
 
-pub fn player_movement(
+pub fn player_controller(
     keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&Player, &mut RigidBodyVelocity)>,
+    mut players: Query<(&mut Player, &mut RigidBodyVelocity)>,
 ) {
-    for (player, mut velocity) in players.iter_mut() {
+    for (mut player, mut velocity) in players.iter_mut() {
         if keyboard_input.pressed(KeyCode::Left) {
             velocity.linvel = Vec2::new(-player.speed, velocity.linvel.y).into();
+            player.facing_direction = GameDirection::Left
         }
         if keyboard_input.pressed(KeyCode::Right) {
             velocity.linvel = Vec2::new(player.speed, velocity.linvel.y).into();
+            player.facing_direction = GameDirection::Right
+        }
+    }
+}
+
+pub fn fire_controller(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut commands: Commands,
+    materials: Res<Materials>,
+    players: Query<(&Player, &RigidBodyPosition), With<Player>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        for (player, position) in players.iter() {
+            let options = BulletOptions {
+                x: position.position.translation.x,
+                y: position.position.translation.y,
+                direction: player.facing_direction,
+            };
+            insert_bullet_at(&mut commands, &materials, options)
         }
     }
 }
@@ -152,15 +181,17 @@ fn death_by_height(
 
 pub fn death_by_enemy(
     mut commands: Commands,
-    mut players: Query<Entity, With<Player>>,
+    players: Query<Entity, With<Player>>,
     enemies: Query<Entity, With<Enemy>>,
     mut contact_events: EventReader<ContactEvent>,
 ) {
     for contact_event in contact_events.iter() {
         if let ContactEvent::Started(h1, h2) = contact_event {
-            for player in players.iter_mut() {
+            for player in players.iter() {
                 for enemy in enemies.iter() {
-                    if (h1.entity() == player && h2.entity() == enemy) || (h1.entity() == enemy && h2.entity() == player) {
+                    if (h1.entity() == player && h2.entity() == enemy)
+                        || (h1.entity() == enemy && h2.entity() == player)
+                    {
                         commands.entity(player).despawn_recursive();
                     }
                 }
