@@ -2,8 +2,8 @@ use super::super::AppState;
 use super::camera::new_camera_2d;
 use super::components::{Jumper, Materials, Player};
 use super::{
-    destroy_bullet_on_contact, insert_bullet_at, kill_on_contact, BulletOptions, Enemy,
-    GameDirection,
+    destroy_bullet_on_contact, kill_on_contact, BulletFiredEvent, Enemy,
+    GameDirection, on_bullet_fired, on_monster_hit, on_monster_dead, MonsterDeathEvent, MonsterHitEvent,
 };
 use bevy::prelude::*;
 use bevy::render::camera::Camera;
@@ -11,23 +11,41 @@ use bevy_rapier2d::prelude::*;
 
 pub struct PlayerPlugin;
 
+pub struct PlayerHitEvent {
+    entity: Entity,
+}
+
+pub struct PlayerDeathEvent {
+    entity: Entity,
+}
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::InGame).with_system(spawn_player.system()),
-        )
-        .add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(camera_follow_player.system())
-                .with_system(player_jumps.system())
-                .with_system(player_controller.system())
-                .with_system(jump_reset.system())
-                .with_system(death_by_height.system())
-                .with_system(death_by_enemy.system())
-                .with_system(fire_controller.system())
-                .with_system(kill_on_contact.system())
-                .with_system(destroy_bullet_on_contact.system()),
-        );
+        app.add_event::<PlayerHitEvent>()
+            .add_event::<PlayerDeathEvent>()
+            .add_event::<MonsterHitEvent>()
+            .add_event::<MonsterDeathEvent>()
+            .add_event::<BulletFiredEvent>()
+            .add_system_set(
+                SystemSet::on_enter(AppState::InGame).with_system(spawn_player.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(camera_follow_player.system())
+                    .with_system(player_jumps.system())
+                    .with_system(player_controller.system())
+                    .with_system(jump_reset.system())
+                    .with_system(death_by_height.system())
+                    .with_system(death_by_enemy.system())
+                    .with_system(fire_controller.system())
+                    .with_system(kill_on_contact.system())
+                    .with_system(destroy_bullet_on_contact.system())
+                    .with_system(on_player_hit.system())
+                    .with_system(on_monster_hit.system())
+                    .with_system(on_player_dead.system())
+                    .with_system(on_monster_dead.system())
+                    .with_system(on_bullet_fired.system()),
+            );
     }
 }
 
@@ -100,18 +118,16 @@ pub fn player_controller(
 
 pub fn fire_controller(
     keyboard_input: Res<Input<KeyCode>>,
-    mut commands: Commands,
-    materials: Res<Materials>,
+    mut send_fire_event: EventWriter<BulletFiredEvent>,
     players: Query<(&Player, &RigidBodyPosition), With<Player>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (player, position) in players.iter() {
-            let options = BulletOptions {
-                x: position.position.translation.x,
-                y: position.position.translation.y,
+            let event = BulletFiredEvent {
+                position: Vec2::new(position.position.translation.x, position.position.translation.y),
                 direction: player.facing_direction,
             };
-            insert_bullet_at(&mut commands, &materials, options)
+            send_fire_event.send(event);
         }
     }
 }
@@ -147,19 +163,36 @@ fn camera_follow_player(
     }
 }
 
+fn on_player_hit(
+    mut player_hit_events: EventReader<PlayerHitEvent>,
+    mut send_player_death: EventWriter<PlayerDeathEvent>,
+) {
+    for event in player_hit_events.iter() {
+        send_player_death.send(PlayerDeathEvent {
+            entity: event.entity,
+        })
+    }
+}
+
+fn on_player_dead(mut player_death_events: EventReader<PlayerDeathEvent>, mut commands: Commands) {
+    for event in player_death_events.iter() {
+        commands.entity(event.entity).despawn_recursive()
+    }
+}
+
 fn death_by_height(
-    mut commands: Commands,
+    mut send_player_death: EventWriter<PlayerDeathEvent>,
     players: Query<(Entity, &RigidBodyPosition), With<Player>>,
 ) {
     for (entity, position) in players.iter() {
         if position.position.translation.y < -1. {
-            commands.entity(entity).despawn_recursive();
+            send_player_death.send(PlayerDeathEvent { entity })
         }
     }
 }
 
 pub fn death_by_enemy(
-    mut commands: Commands,
+    mut send_player_hit: EventWriter<PlayerHitEvent>,
     players: Query<Entity, With<Player>>,
     enemies: Query<Entity, With<Enemy>>,
     mut contact_events: EventReader<ContactEvent>,
@@ -171,7 +204,7 @@ pub fn death_by_enemy(
                     if (h1.entity() == player && h2.entity() == enemy)
                         || (h1.entity() == enemy && h2.entity() == player)
                     {
-                        commands.entity(player).despawn_recursive();
+                        send_player_hit.send(PlayerHitEvent { entity: player })
                     }
                 }
             }

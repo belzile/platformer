@@ -38,3 +38,28 @@ pub fn insert_monster_at(commands: &mut Commands, x: usize, y: usize, materials:
         .insert(Enemy)
         .insert(Monster);
 }
+
+pub struct MonsterHitEvent {
+    pub entity: Entity,
+}
+
+pub struct MonsterDeathEvent {
+    entity: Entity,
+}
+
+pub fn on_monster_hit(
+    mut monster_hit_events: EventReader<MonsterHitEvent>,
+    mut send_monster_death: EventWriter<MonsterDeathEvent>,
+) {
+    for event in monster_hit_events.iter() {
+        send_monster_death.send(MonsterDeathEvent {
+            entity: event.entity,
+        })
+    }
+}
+
+pub fn on_monster_dead(mut monster_death_events: EventReader<MonsterDeathEvent>, mut commands: Commands) {
+    for event in monster_death_events.iter() {
+        commands.entity(event.entity).despawn_recursive()
+    }
+}

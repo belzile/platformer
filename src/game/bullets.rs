@@ -1,18 +1,27 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use super::{Bullet, Enemy, GameDirection, Materials};
+use super::{Bullet, GameDirection, Materials, MonsterHitEvent, Monster};
 
-pub struct BulletOptions {
-    pub x: f32,
-    pub y: f32,
+pub struct BulletFiredEvent {
+    pub position: Vec2,
     pub direction: GameDirection,
+}
+
+pub fn on_bullet_fired(
+    mut commands: Commands,
+    materials: Res<Materials>,
+    mut bullet_fired_events: EventReader<BulletFiredEvent>,
+) {
+    for event in bullet_fired_events.iter() {
+        insert_bullet_at(&mut commands, &materials, event)
+    }
 }
 
 pub fn insert_bullet_at(
     commands: &mut Commands,
     materials: &Res<Materials>,
-    options: BulletOptions,
+    options: &BulletFiredEvent,
 ) {
     let speed = match options.direction {
         GameDirection::Left => -14.0,
@@ -20,11 +29,11 @@ pub fn insert_bullet_at(
     };
 
     let x = match options.direction {
-        GameDirection::Left => options.x - 1.,
-        _ => options.x + 1.,
+        GameDirection::Left => options.position.x - 1.,
+        _ => options.position.x + 1.,
     };
     let rigid_body = RigidBodyBundle {
-        position: Vec2::new(x, options.y).into(),
+        position: Vec2::new(x, options.position.y).into(),
         velocity: RigidBodyVelocity {
             linvel: Vec2::new(speed, 0.0).into(),
             ..Default::default()
@@ -78,9 +87,9 @@ pub fn destroy_bullet_on_contact(
 }
 
 pub fn kill_on_contact(
-    mut commands: Commands,
+    mut send_monster_hit: EventWriter<MonsterHitEvent>,
     bullets: Query<Entity, With<Bullet>>,
-    enemies: Query<Entity, With<Enemy>>,
+    enemies: Query<Entity, With<Monster>>,
     mut contact_events: EventReader<ContactEvent>,
 ) {
     for contact_event in contact_events.iter() {
@@ -90,7 +99,7 @@ pub fn kill_on_contact(
                     if (h1.entity() == bullet && h2.entity() == enemy)
                         || (h1.entity() == enemy && h2.entity() == bullet)
                     {
-                        commands.entity(enemy).despawn_recursive();
+                        send_monster_hit.send(MonsterHitEvent { entity: enemy } );
                     }
                 }
             }
