@@ -10,6 +10,8 @@ mod monsters;
 pub use monsters::*;
 mod bullets;
 pub use bullets::*;
+mod living_beings;
+pub use living_beings::*;
 
 use super::AppState;
 use bevy::prelude::*;
