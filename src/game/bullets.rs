@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use super::{Bullet, GameDirection, Materials, MonsterHitEvent, Monster};
+use super::{Bullet, GameDirection, LivingBeing, LivingBeingHitEvent, Materials};
 
 pub struct BulletFiredEvent {
     pub position: Vec2,
@@ -87,19 +87,19 @@ pub fn destroy_bullet_on_contact(
 }
 
 pub fn kill_on_contact(
-    mut send_monster_hit: EventWriter<MonsterHitEvent>,
+    mut send_living_being_hit: EventWriter<LivingBeingHitEvent>,
     bullets: Query<Entity, With<Bullet>>,
-    enemies: Query<Entity, With<Monster>>,
+    living_being: Query<Entity, With<LivingBeing>>,
     mut contact_events: EventReader<ContactEvent>,
 ) {
     for contact_event in contact_events.iter() {
         if let ContactEvent::Started(h1, h2) = contact_event {
             for bullet in bullets.iter() {
-                for enemy in enemies.iter() {
+                for enemy in living_being.iter() {
                     if (h1.entity() == bullet && h2.entity() == enemy)
                         || (h1.entity() == enemy && h2.entity() == bullet)
                     {
-                        send_monster_hit.send(MonsterHitEvent { entity: enemy } );
+                        send_living_being_hit.send(LivingBeingHitEvent { entity: enemy });
                     }
                 }
             }
