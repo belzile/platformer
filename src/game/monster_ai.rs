@@ -10,9 +10,6 @@ struct MonsterWalkedIntoWallEvent {
     entity: Entity,
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, StageLabel)]
-struct FixedUpdateStage;
-
 pub struct MonsterAiPlugin;
 
 impl Plugin for MonsterAiPlugin {

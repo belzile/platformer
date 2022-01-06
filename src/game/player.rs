@@ -112,16 +112,15 @@ pub fn fire_controller(
     players: Query<(&Player, &RigidBodyPosition), With<Player>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
-        for (player, position) in players.iter() {
-            let event = BulletFiredEvent {
-                position: Vec2::new(
-                    position.position.translation.x,
-                    position.position.translation.y,
-                ),
-                direction: player.facing_direction,
-            };
-            send_fire_event.send(event);
-        }
+        let (player, position) = players.single().expect("There must be only one player.");
+        let event = BulletFiredEvent {
+            position: Vec2::new(
+                position.position.translation.x,
+                position.position.translation.y,
+            ),
+            direction: player.facing_direction,
+        };
+        send_fire_event.send(event);
     }
 }
 
@@ -148,11 +147,10 @@ fn camera_follow_player(
     mut cameras: Query<&mut Transform, With<Camera>>,
     players: Query<&RigidBodyPosition, With<Player>>,
 ) {
-    for player in players.iter() {
-        for mut camera in cameras.iter_mut() {
-            camera.translation.x = player.position.translation.x;
-            camera.translation.y = player.position.translation.y;
-        }
+    let player = players.single().expect("There must be only one player");
+    for mut camera in cameras.iter_mut() {
+        camera.translation.x = player.position.translation.x;
+        camera.translation.y = player.position.translation.y;
     }
 }
 
@@ -164,13 +162,12 @@ pub fn death_by_enemy(
 ) {
     for contact_event in contact_events.iter() {
         if let ContactEvent::Started(h1, h2) = contact_event {
-            for player in players.iter() {
-                for enemy in enemies.iter() {
-                    if (h1.entity() == player && h2.entity() == enemy)
-                        || (h1.entity() == enemy && h2.entity() == player)
-                    {
-                        send_player_hit.send(LivingBeingHitEvent { entity: player })
-                    }
+            let player = players.single().expect("There must be only one player.");
+            for enemy in enemies.iter() {
+                if (h1.entity() == player && h2.entity() == enemy)
+                    || (h1.entity() == enemy && h2.entity() == player)
+                {
+                    send_player_hit.send(LivingBeingHitEvent { entity: player })
                 }
             }
         }
