@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use super::{Enemy, LivingBeing, Materials, Monster};
+use super::{Enemy, GameDirection, Jumper, LivingBeing, Materials, Monster};
 
 pub fn insert_monster_at(commands: &mut Commands, x: usize, y: usize, materials: &Res<Materials>) {
     let rigid_body = RigidBodyBundle {
@@ -37,5 +37,12 @@ pub fn insert_monster_at(commands: &mut Commands, x: usize, y: usize, materials:
         .insert(RigidBodyPositionSync::Discrete)
         .insert(LivingBeing)
         .insert(Enemy)
-        .insert(Monster);
+        .insert(Monster {
+            speed: 3.,
+            facing_direction: GameDirection::Right,
+        })
+        .insert(Jumper {
+            jump_impulse: 14.,
+            is_jumping: false,
+        });
 }

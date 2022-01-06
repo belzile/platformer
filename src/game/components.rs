@@ -19,7 +19,11 @@ pub struct Player {
 }
 
 pub struct Enemy;
-pub struct Monster;
+
+pub struct Monster {
+    pub speed: f32,
+    pub facing_direction: GameDirection,
+}
 
 pub struct Bullet;
 
