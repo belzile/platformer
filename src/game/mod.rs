@@ -12,6 +12,8 @@ mod bullets;
 pub use bullets::*;
 mod living_beings;
 pub use living_beings::*;
+mod monster_ai;
+pub use monster_ai::*;
 
 use super::AppState;
 use bevy::prelude::*;
@@ -28,6 +30,7 @@ impl Plugin for GamePlugin {
             )
             .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(PlayerPlugin)
+            .add_plugin(MonsterAiPlugin)
             .add_startup_system(setup.system());
     }
 }
