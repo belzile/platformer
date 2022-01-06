@@ -17,17 +17,18 @@ pub struct MonsterAiPlugin;
 
 impl Plugin for MonsterAiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(monster_walking_system.system())
-                .with_system(monster_wall_contact_detection.system())
-                .with_system(monster_change_direction_on_contact.system()),
-        )
-        .add_system_set(
-            SystemSet::new()
-                .with_run_criteria(FixedTimestep::step(2.0))
-                .with_system(monster_jumps.system()),
-        );
+        app.add_event::<MonsterWalkedIntoWallEvent>()
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(monster_walking_system.system())
+                    .with_system(monster_wall_contact_detection.system())
+                    .with_system(monster_change_direction_on_contact.system()),
+            )
+            .add_system_set(
+                SystemSet::new()
+                    .with_run_criteria(FixedTimestep::step(2.0))
+                    .with_system(monster_jumps.system()),
+            );
     }
 }
 
