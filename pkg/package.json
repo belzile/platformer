@@ -1,0 +1,12 @@
+{
+  "name": "platformer",
+  "version": "0.1.0",
+  "files": [
+    "platformer_bg.wasm",
+    "platformer.js",
+    "platformer.d.ts"
+  ],
+  "module": "platformer.js",
+  "types": "platformer.d.ts",
+  "sideEffects": false
+}
