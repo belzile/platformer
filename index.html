@@ -1,0 +1,13 @@
+<html>
+<head>
+<title>My Bevy Project</title>
+</head>
+<body>
+<script type="module">
+  import init from "./pkg/platformer.js";
+  init("./pkg/platformer_bg.wasm").then(function (wasm) {
+    wasm.run();
+  });
+</script>
+</body>
+</html>
