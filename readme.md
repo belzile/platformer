@@ -2,7 +2,7 @@
 
 Rust platformer written in Rust and using Bevy.
 
-(Play it here!)[https://belzile.github.io/platformer]
+(Play it here!)[https://belzile.github.io/platformer/]
 
 ## Running Locally
 
