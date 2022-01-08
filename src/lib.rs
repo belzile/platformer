@@ -4,13 +4,14 @@ use wasm_bindgen::prelude::*;
 mod game;
 use game::GamePlugin;
 
-mod main_menu;
-use main_menu::MainMenuPlugin;
+mod menus;
+use menus::MenusPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-enum AppState {
+pub enum AppState {
     MainMenu,
     InGame,
+    GameOver,
 }
 
 #[wasm_bindgen]
@@ -31,7 +32,7 @@ pub fn run() {
     })
     .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
     .add_state(AppState::MainMenu)
-    .add_plugin(MainMenuPlugin)
+    .add_plugin(MenusPlugin)
     .add_plugin(GamePlugin)
     .run();
 }

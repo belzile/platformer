@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::RigidBodyPosition;
 
+use crate::AppState;
+
+use super::Player;
+
 pub struct LivingBeing;
 
 pub struct LivingBeingHitEvent {
@@ -24,10 +28,17 @@ pub fn on_living_being_hit(
 
 pub fn on_living_being_dead(
     mut living_being_death_events: EventReader<LivingBeingDeathEvent>,
+    player_query: Query<Entity, With<Player>>,
     mut commands: Commands,
+    mut app_state: ResMut<State<AppState>>,
 ) {
     for event in living_being_death_events.iter() {
-        commands.entity(event.entity).despawn_recursive()
+        let player_id = player_query.single();
+        commands.entity(event.entity).despawn_recursive();
+        match player_id {
+            Ok(player) if event.entity == player => app_state.set(AppState::GameOver).unwrap(),
+            _ => (),
+        };
     }
 }
 
