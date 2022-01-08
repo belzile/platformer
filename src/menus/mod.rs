@@ -52,7 +52,11 @@ impl Plugin for MenusPlugin {
     }
 }
 
-fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<MenuMaterials>) {
+fn setup_main_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    materials: Res<MenuMaterials>,
+) {
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands
@@ -89,18 +93,17 @@ fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>, mater
         });
 }
 
-fn setup_game_over_menu(mut commands: Commands, asset_server: Res<AssetServer>, materials: Res<MenuMaterials>) {
+fn setup_game_over_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    materials: Res<MenuMaterials>,
+) {
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands
         .spawn_bundle(root(&materials))
         .with_children(|parent| {
-            parent
-                .spawn_bundle(button_text(
-                        &asset_server,
-                        &materials,
-                        "Game Over",
-                ));
+            parent.spawn_bundle(button_text(&asset_server, &materials, "Game Over"));
             parent
                 .spawn_bundle(border(&materials))
                 .with_children(|parent| {
