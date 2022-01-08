@@ -4,11 +4,12 @@ use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
 pub fn spawn_floor(mut commands: Commands, materials: Res<Materials>) {
-    let world = create_world(150);
+    let world = create_world(25);
     add_sprites(&mut commands, &materials, &world);
     add_colliders(&world, &mut commands);
 
     add_enemies(&mut commands, &world, &materials);
+    add_winning_zone(&mut commands, &materials, 25.)
 }
 
 fn add_sprites(commands: &mut Commands, materials: &Res<Materials>, world: &Vec<usize>) {
@@ -60,9 +61,9 @@ fn get_random_height_delta() -> isize {
     let mut rng = thread_rng();
     let random_number: u32 = rng.gen_range(0..100);
     let delta = match random_number {
-        0..=70 => 0,
-        71..=80 => -1,
-        81..=90 => 1,
+        0..=75 => 0,
+        76..=81 => -1,
+        82..=95 => 1,
         _ => 2,
     };
     delta
@@ -118,4 +119,27 @@ fn add_collider(commands: &mut Commands, height: usize, from: usize, to: usize) 
         .spawn_bundle(rigid_body)
         .insert_bundle(collider)
         .insert(RigidBodyPositionSync::Discrete);
+}
+
+fn add_winning_zone(commands: &mut Commands, materials: &Res<Materials>, x: f32) {
+    let height = 800.;
+    let rigid_body = RigidBodyBundle {
+        position: Vec2::new(x, 0.).into(),
+        body_type: RigidBodyType::Static,
+        ..Default::default()
+    };
+
+    let collider = ColliderBundle {
+        shape: ColliderShape::cuboid(0.5, height / 2.),
+        ..Default::default()
+    };
+
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.winning_zone_material.clone(),
+        sprite: Sprite::new(Vec2::new(1., height)),
+        ..Default::default()
+    })
+    .insert_bundle(rigid_body)
+    .insert_bundle(collider)
+    .insert(RigidBodyPositionSync::Discrete);
 }

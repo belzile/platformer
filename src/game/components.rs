@@ -5,6 +5,7 @@ pub struct Materials {
     pub floor_material: Handle<ColorMaterial>,
     pub monster_material: Handle<ColorMaterial>,
     pub bullet_material: Handle<ColorMaterial>,
+    pub winning_zone_material: Handle<ColorMaterial>,
 }
 
 #[derive(Copy, Clone)]

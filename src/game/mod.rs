@@ -41,6 +41,7 @@ fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
         floor_material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
         monster_material: materials.add(Color::rgb(0.8, 0., 0.).into()),
         bullet_material: materials.add(Color::rgb(0.8, 0.8, 0.).into()),
+        winning_zone_material: materials.add(Color::rgb(0., 0.75, 1.).into()),
     });
 }
 
