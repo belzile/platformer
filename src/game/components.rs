@@ -32,3 +32,5 @@ pub struct Jumper {
     pub jump_impulse: f32,
     pub is_jumping: bool,
 }
+
+pub struct WinningZone;

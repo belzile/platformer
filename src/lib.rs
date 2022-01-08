@@ -12,6 +12,7 @@ pub enum AppState {
     MainMenu,
     InGame,
     GameOver,
+    BetweenLevels,
 }
 
 #[wasm_bindgen]

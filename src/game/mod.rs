@@ -31,6 +31,7 @@ impl Plugin for GamePlugin {
             .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(PlayerPlugin)
             .add_plugin(MonsterAiPlugin)
+            .add_system(on_level_success.system())
             .add_startup_system(setup.system());
     }
 }
@@ -53,6 +54,28 @@ fn back_to_main_menu_controls(
         if keys.just_pressed(KeyCode::Escape) {
             app_state.set(AppState::MainMenu).unwrap();
             keys.reset(KeyCode::Escape);
+        }
+    }
+}
+
+fn on_level_success(
+    mut app_state: ResMut<State<AppState>>,
+    players: Query<Entity, With<Player>>,
+    winning_zones: Query<Entity, With<WinningZone>>,
+    mut contact_events: EventReader<ContactEvent>,
+) {
+    for contact_event in contact_events.iter() {
+        if let ContactEvent::Started(h1, h2) = contact_event {
+            let player = players.single();
+            let winning_zone = winning_zones.single();
+            if player.is_ok() && winning_zone.is_ok() {
+                let p = player.unwrap();
+                let w = winning_zone.unwrap();
+                if (h1.entity() == p && h2.entity() == w) || (h1.entity() == w && h2.entity() == p)
+                {
+                    app_state.set(AppState::BetweenLevels).unwrap();
+                }
+            }
         }
     }
 }

@@ -48,7 +48,15 @@ impl Plugin for MenusPlugin {
                     .with_system(cleanup.system())
                     .with_system(setup_game_over_menu.system()),
             )
-            .add_system_set(SystemSet::on_exit(AppState::GameOver).with_system(cleanup.system()));
+            .add_system_set(SystemSet::on_exit(AppState::GameOver).with_system(cleanup.system()))
+            .add_system_set(
+                SystemSet::on_enter(AppState::BetweenLevels)
+                    .with_system(cleanup.system())
+                    .with_system(setup_level_success_menu.system()),
+            )
+            .add_system_set(
+                SystemSet::on_exit(AppState::BetweenLevels).with_system(cleanup.system()),
+            );
     }
 }
 
@@ -117,6 +125,48 @@ fn setup_game_over_menu(
                                         &asset_server,
                                         &materials,
                                         "Replay",
+                                    ));
+                                })
+                                .insert(MenuButton::Play);
+                            parent
+                                .spawn_bundle(button(&materials))
+                                .with_children(|parent| {
+                                    parent.spawn_bundle(button_text(
+                                        &asset_server,
+                                        &materials,
+                                        "Back to Main Menu",
+                                    ));
+                                })
+                                .insert(MenuButton::BackToMainMenu);
+                        });
+                });
+        });
+}
+
+fn setup_level_success_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    materials: Res<MenuMaterials>,
+) {
+    commands.spawn_bundle(UiCameraBundle::default());
+
+    commands
+        .spawn_bundle(root(&materials))
+        .with_children(|parent| {
+            parent.spawn_bundle(button_text(&asset_server, &materials, "Level Success"));
+            parent
+                .spawn_bundle(border(&materials))
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(menu_background(&materials))
+                        .with_children(|parent| {
+                            parent
+                                .spawn_bundle(button(&materials))
+                                .with_children(|parent| {
+                                    parent.spawn_bundle(button_text(
+                                        &asset_server,
+                                        &materials,
+                                        "Next Level",
                                     ));
                                 })
                                 .insert(MenuButton::Play);

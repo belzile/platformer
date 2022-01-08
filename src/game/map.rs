@@ -1,15 +1,15 @@
-use super::{components::Materials, insert_monster_at};
+use super::{components::Materials, insert_monster_at, WinningZone};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
 pub fn spawn_floor(mut commands: Commands, materials: Res<Materials>) {
-    let world = create_world(25);
+    let world = create_world(150);
     add_sprites(&mut commands, &materials, &world);
     add_colliders(&world, &mut commands);
 
     add_enemies(&mut commands, &world, &materials);
-    add_winning_zone(&mut commands, &materials, 25.)
+    add_winning_zone(&mut commands, &materials, 150.)
 }
 
 fn add_sprites(commands: &mut Commands, materials: &Res<Materials>, world: &Vec<usize>) {
@@ -134,12 +134,14 @@ fn add_winning_zone(commands: &mut Commands, materials: &Res<Materials>, x: f32)
         ..Default::default()
     };
 
-    commands.spawn_bundle(SpriteBundle {
-        material: materials.winning_zone_material.clone(),
-        sprite: Sprite::new(Vec2::new(1., height)),
-        ..Default::default()
-    })
-    .insert_bundle(rigid_body)
-    .insert_bundle(collider)
-    .insert(RigidBodyPositionSync::Discrete);
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: materials.winning_zone_material.clone(),
+            sprite: Sprite::new(Vec2::new(1., height)),
+            ..Default::default()
+        })
+        .insert_bundle(rigid_body)
+        .insert_bundle(collider)
+        .insert(RigidBodyPositionSync::Discrete)
+        .insert(WinningZone);
 }
