@@ -86,16 +86,18 @@ fn setup_main_menu(
                                     ));
                                 })
                                 .insert(MenuButton::Play);
-                            parent
-                                .spawn_bundle(button(&materials))
-                                .with_children(|parent| {
-                                    parent.spawn_bundle(button_text(
-                                        &asset_server,
-                                        &materials,
-                                        "Quit",
-                                    ));
-                                })
-                                .insert(MenuButton::Quit);
+                            if !cfg!(target_arch = "wasm32") {
+                                parent
+                                    .spawn_bundle(button(&materials))
+                                    .with_children(|parent| {
+                                        parent.spawn_bundle(button_text(
+                                            &asset_server,
+                                            &materials,
+                                            "Quit",
+                                        ));
+                                    })
+                                    .insert(MenuButton::Quit);
+                            }
                         });
                 });
         });
