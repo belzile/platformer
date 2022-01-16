@@ -17,7 +17,7 @@ pub enum AppState {
 
 #[wasm_bindgen]
 pub fn run() {
-    let mut app = App::build();
+    let mut app = App::new();
 
     app.add_plugins(DefaultPlugins);
 

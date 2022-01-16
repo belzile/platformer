@@ -1,25 +1,24 @@
 use bevy::prelude::*;
 
 pub struct MenuMaterials {
-    pub root: Handle<ColorMaterial>,
-    pub border: Handle<ColorMaterial>,
-    pub menu: Handle<ColorMaterial>,
-    pub button: Handle<ColorMaterial>,
-    pub button_hovered: Handle<ColorMaterial>,
-    pub button_pressed: Handle<ColorMaterial>,
+    pub root: UiColor,
+    pub border: UiColor,
+    pub menu: UiColor,
+    pub button: UiColor,
+    pub button_hovered: UiColor,
+    pub button_pressed: UiColor,
     pub button_text: Color,
 }
 
 impl FromWorld for MenuMaterials {
-    fn from_world(world: &mut World) -> Self {
-        let mut materials = world.get_resource_mut::<Assets<ColorMaterial>>().unwrap();
+    fn from_world(_: &mut World) -> Self {
         MenuMaterials {
-            root: materials.add(Color::NONE.into()),
-            border: materials.add(Color::rgb(0.65, 0.65, 0.65).into()),
-            menu: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
-            button: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
-            button_hovered: materials.add(Color::rgb(0.25, 0.25, 0.25).into()),
-            button_pressed: materials.add(Color::rgb(0.35, 0.75, 0.35).into()),
+            root: Color::NONE.into(),
+            border: Color::rgb(0.65, 0.65, 0.65).into(),
+            menu: Color::rgb(0.15, 0.15, 0.15).into(),
+            button: Color::rgb(0.15, 0.15, 0.15).into(),
+            button_hovered: Color::rgb(0.25, 0.25, 0.25).into(),
+            button_pressed: Color::rgb(0.35, 0.75, 0.35).into(),
             button_text: Color::WHITE,
         }
     }
@@ -28,7 +27,7 @@ impl FromWorld for MenuMaterials {
 pub fn button_system(
     materials: Res<MenuMaterials>,
     mut buttons: Query<
-        (&Interaction, &mut Handle<ColorMaterial>),
+        (&Interaction, &mut UiColor),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
@@ -50,7 +49,7 @@ pub fn root(materials: &Res<MenuMaterials>) -> NodeBundle {
             align_items: AlignItems::Center,
             ..Default::default()
         },
-        material: materials.root.clone(),
+        color: materials.root.clone(),
         ..Default::default()
     }
 }
@@ -62,7 +61,7 @@ pub fn border(materials: &Res<MenuMaterials>) -> NodeBundle {
             border: Rect::all(Val::Px(8.0)),
             ..Default::default()
         },
-        material: materials.border.clone(),
+        color: materials.border.clone(),
         ..Default::default()
     }
 }
@@ -77,7 +76,7 @@ pub fn menu_background(materials: &Res<MenuMaterials>) -> NodeBundle {
             padding: Rect::all(Val::Px(5.0)),
             ..Default::default()
         },
-        material: materials.menu.clone(),
+        color: materials.menu.clone(),
         ..Default::default()
     }
 }
@@ -90,7 +89,7 @@ pub fn button(materials: &Res<MenuMaterials>) -> ButtonBundle {
             align_items: AlignItems::Center,
             ..Default::default()
         },
-        material: materials.button.clone(),
+        color: materials.button.clone(),
         ..Default::default()
     }
 }

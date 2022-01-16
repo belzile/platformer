@@ -13,7 +13,7 @@ use bevy_rapier2d::prelude::*;
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_event::<LivingBeingHitEvent>()
             .add_event::<LivingBeingDeathEvent>()
             .add_event::<BulletFiredEvent>()
@@ -42,25 +42,28 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
     let rigid_body = RigidBodyBundle {
         position: Vec2::new(0., 2.).into(),
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
-        activation: RigidBodyActivation::cannot_sleep(),
+        activation: RigidBodyActivation::cannot_sleep().into(),
         forces: RigidBodyForces {
             gravity_scale: 3.,
             ..Default::default()
-        },
+        }.into(),
         ..Default::default()
     };
     let collider = ColliderBundle {
-        shape: ColliderShape::round_cuboid(0.35, 0.35, 0.1),
+        shape: ColliderShape::round_cuboid(0.35, 0.35, 0.1).into(),
         flags: ColliderFlags {
             active_events: ActiveEvents::CONTACT_EVENTS,
             ..Default::default()
-        },
+        }.into(),
         ..Default::default()
     };
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.player_material.clone(),
-            sprite: Sprite::new(Vec2::new(0.9, 0.9)),
+            sprite: Sprite {
+                color: materials.player_material.clone(),
+                custom_size: Vec2::new(0.9, 0.9).into(),
+                ..Default::default()
+            },
             ..Default::default()
         })
         .insert_bundle(rigid_body)
@@ -80,7 +83,7 @@ pub fn spawn_player(mut commands: Commands, materials: Res<Materials>) {
 
 pub fn player_jumps(
     keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Player>>,
+    mut players: Query<(&mut Jumper, &mut RigidBodyVelocityComponent), With<Player>>,
 ) {
     for (mut jumper, mut velocity) in players.iter_mut() {
         if keyboard_input.pressed(KeyCode::Up) && !jumper.is_jumping {
@@ -92,7 +95,7 @@ pub fn player_jumps(
 
 pub fn player_controller(
     keyboard_input: Res<Input<KeyCode>>,
-    mut players: Query<(&mut Player, &mut RigidBodyVelocity)>,
+    mut players: Query<(&mut Player, &mut RigidBodyVelocityComponent)>,
 ) {
     for (mut player, mut velocity) in players.iter_mut() {
         if keyboard_input.pressed(KeyCode::Left) {
@@ -109,7 +112,7 @@ pub fn player_controller(
 pub fn fire_controller(
     keyboard_input: Res<Input<KeyCode>>,
     mut send_fire_event: EventWriter<BulletFiredEvent>,
-    players: Query<(&Player, &RigidBodyPosition), With<Player>>,
+    players: Query<(&Player, &RigidBodyPositionComponent), With<Player>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         for (player, position) in players.iter() {
@@ -146,7 +149,7 @@ fn set_jumping_false_if_touching_floor(entity: Entity, jumper: &mut Jumper, even
 
 fn camera_follow_player(
     mut cameras: Query<&mut Transform, With<Camera>>,
-    players: Query<&RigidBodyPosition, With<Player>>,
+    players: Query<&RigidBodyPositionComponent, With<Player>>,
 ) {
     for player in players.iter() {
         for mut camera in cameras.iter_mut() {

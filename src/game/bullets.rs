@@ -37,28 +37,31 @@ pub fn insert_bullet_at(
         velocity: RigidBodyVelocity {
             linvel: Vec2::new(speed, 0.0).into(),
             ..Default::default()
-        },
+        }.into(),
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
-        activation: RigidBodyActivation::cannot_sleep(),
+        activation: RigidBodyActivation::cannot_sleep().into(),
         forces: RigidBodyForces {
             gravity_scale: 0.,
             ..Default::default()
-        },
+        }.into(),
         ..Default::default()
     };
 
     let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(0.25, 0.05),
+        shape: ColliderShape::cuboid(0.25, 0.05).into(),
         flags: ColliderFlags {
             active_events: ActiveEvents::CONTACT_EVENTS,
             ..Default::default()
-        },
+        }.into(),
         ..Default::default()
     };
 
     let sprite = SpriteBundle {
-        material: materials.bullet_material.clone(),
-        sprite: Sprite::new(Vec2::new(0.5, 0.1)),
+        sprite: Sprite {
+            color: materials.bullet_material.clone(),
+            custom_size: Vec2::new(0.5, 0.1).into(),
+            ..Default::default()
+        },
         ..Default::default()
     };
 

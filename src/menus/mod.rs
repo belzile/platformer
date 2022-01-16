@@ -6,6 +6,7 @@ pub use common::*;
 
 pub struct MenusPlugin;
 
+#[derive(Component)]
 enum MenuButton {
     Play,
     BackToMainMenu,
@@ -33,7 +34,7 @@ fn button_press_system(
 }
 
 impl Plugin for MenusPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<MenuMaterials>()
             .add_system(button_system.system())
             .add_system(button_press_system.system())

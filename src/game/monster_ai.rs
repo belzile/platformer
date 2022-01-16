@@ -13,7 +13,7 @@ struct MonsterWalkedIntoWallEvent {
 pub struct MonsterAiPlugin;
 
 impl Plugin for MonsterAiPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_event::<MonsterWalkedIntoWallEvent>()
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
@@ -29,7 +29,7 @@ impl Plugin for MonsterAiPlugin {
     }
 }
 
-fn monster_walking_system(mut monsters: Query<(&Monster, &mut RigidBodyVelocity)>) {
+fn monster_walking_system(mut monsters: Query<(&Monster, &mut RigidBodyVelocityComponent)>) {
     for (monster, mut velocity) in monsters.iter_mut() {
         let speed = match monster.facing_direction {
             GameDirection::Left => -monster.speed,
@@ -72,7 +72,7 @@ fn monster_change_direction_on_contact(
     }
 }
 
-fn monster_jumps(mut monsters: Query<(&mut Jumper, &mut RigidBodyVelocity), With<Monster>>) {
+fn monster_jumps(mut monsters: Query<(&mut Jumper, &mut RigidBodyVelocityComponent), With<Monster>>) {
     for (monster, mut velocity) in monsters.iter_mut() {
         if should_jump() {
             velocity.linvel = Vec2::new(0., monster.jump_impulse).into();
