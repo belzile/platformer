@@ -19,8 +19,6 @@ pub enum AppState {
 pub fn run() {
     let mut app = App::new();
 
-    app.add_plugins(DefaultPlugins);
-
     #[cfg(target_arch = "wasm32")]
     app.add_plugin(bevy_webgl2::WebGL2Plugin);
 
@@ -32,6 +30,7 @@ pub fn run() {
         mode: WindowMode::Windowed,
         ..Default::default()
     })
+    .add_plugins(DefaultPlugins)
     .add_state(AppState::MainMenu)
     .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
     .add_plugin(MenusPlugin)
