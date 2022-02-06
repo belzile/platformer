@@ -22,7 +22,7 @@ use bevy_rapier2d::prelude::*;
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(spawn_floor.system()))
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
@@ -36,13 +36,13 @@ impl Plugin for GamePlugin {
     }
 }
 
-fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+fn setup(mut commands: Commands) {
     commands.insert_resource(Materials {
-        player_material: materials.add(Color::rgb(0.969, 0.769, 0.784).into()),
-        floor_material: materials.add(Color::rgb(0.7, 0.7, 0.7).into()),
-        monster_material: materials.add(Color::rgb(0.8, 0., 0.).into()),
-        bullet_material: materials.add(Color::rgb(0.8, 0.8, 0.).into()),
-        winning_zone_material: materials.add(Color::rgb(0., 0.75, 1.).into()),
+        player_material: Color::rgb(0.969, 0.769, 0.784).into(),
+        floor_material: Color::rgb(0.7, 0.7, 0.7).into(),
+        monster_material: Color::rgb(0.8, 0., 0.).into(),
+        bullet_material: Color::rgb(0.8, 0.8, 0.).into(),
+        winning_zone_material: Color::rgb(0., 0.75, 1.).into(),
     });
 }
 
@@ -66,8 +66,8 @@ fn on_level_success(
 ) {
     for contact_event in contact_events.iter() {
         if let ContactEvent::Started(h1, h2) = contact_event {
-            let player = players.single();
-            let winning_zone = winning_zones.single();
+            let player = players.get_single();
+            let winning_zone = winning_zones.get_single();
             if player.is_ok() && winning_zone.is_ok() {
                 let p = player.unwrap();
                 let w = winning_zone.unwrap();

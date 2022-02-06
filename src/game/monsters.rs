@@ -7,26 +7,29 @@ pub fn insert_monster_at(commands: &mut Commands, x: usize, y: usize, materials:
     let rigid_body = RigidBodyBundle {
         position: Vec2::new(x as f32, y as f32).into(),
         mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
-        activation: RigidBodyActivation::cannot_sleep(),
+        activation: RigidBodyActivation::cannot_sleep().into(),
         forces: RigidBodyForces {
             gravity_scale: 3.,
             ..Default::default()
-        },
+        }.into(),
         ..Default::default()
     };
 
     let collider = ColliderBundle {
-        shape: ColliderShape::round_cuboid(0.35, 0.35, 0.1),
+        shape: ColliderShape::round_cuboid(0.35, 0.35, 0.1).into(),
         flags: ColliderFlags {
             active_events: ActiveEvents::CONTACT_EVENTS,
             ..Default::default()
-        },
+        }.into(),
         ..Default::default()
     };
 
     let sprite = SpriteBundle {
-        material: materials.monster_material.clone(),
-        sprite: Sprite::new(Vec2::new(0.9, 0.9)),
+        sprite: Sprite {
+            color: materials.monster_material.clone(),
+            custom_size: Vec2::new(0.9, 0.9).into(),
+            ..Default::default()
+        },
         ..Default::default()
     };
 

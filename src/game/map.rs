@@ -71,8 +71,11 @@ fn get_random_height_delta() -> isize {
 
 fn add_tile(commands: &mut Commands, materials: &Res<Materials>, x: f32, height: usize) {
     commands.spawn_bundle(SpriteBundle {
-        material: materials.floor_material.clone(),
-        sprite: Sprite::new(Vec2::new(1., height as f32)),
+        sprite: Sprite {
+            color: materials.floor_material.clone(),
+            custom_size: Vec2::new(1., height as f32).into(),
+            ..Default::default()
+        },
         transform: Transform::from_translation(Vec3::new(x, height as f32 / 2. + 0.5, 0.)),
         ..Default::default()
     });
@@ -108,11 +111,11 @@ fn add_collider(commands: &mut Commands, height: usize, from: usize, to: usize) 
     let half_width = width as f32 / 2.;
     let rigid_body = RigidBodyBundle {
         position: Vec2::new(from as f32 + half_width - 0.5, height as f32).into(),
-        body_type: RigidBodyType::Static,
+        body_type: RigidBodyType::Static.into(),
         ..Default::default()
     };
     let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(half_width, 0.5),
+        shape: ColliderShape::cuboid(half_width, 0.5).into(),
         ..Default::default()
     };
     commands
@@ -125,19 +128,22 @@ fn add_winning_zone(commands: &mut Commands, materials: &Res<Materials>, x: f32)
     let height = 800.;
     let rigid_body = RigidBodyBundle {
         position: Vec2::new(x, 0.).into(),
-        body_type: RigidBodyType::Static,
+        body_type: RigidBodyType::Static.into(),
         ..Default::default()
     };
 
     let collider = ColliderBundle {
-        shape: ColliderShape::cuboid(0.5, height / 2.),
+        shape: ColliderShape::cuboid(0.5, height / 2.).into(),
         ..Default::default()
     };
 
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.winning_zone_material.clone(),
-            sprite: Sprite::new(Vec2::new(1., height)),
+            sprite: Sprite {
+                color: materials.winning_zone_material.clone(),
+                custom_size: Vec2::new(1., height).into(),
+                ..Default::default()
+            },
             ..Default::default()
         })
         .insert_bundle(rigid_body)
